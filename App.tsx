@@ -224,13 +224,14 @@ const App: React.FC = () => {
                   </p>
                   
                   <div className="bg-slate-800 rounded-lg p-4 mb-6 text-slate-200 text-sm font-mono overflow-x-auto">
-                      <p className="mb-2 text-slate-400"># 프로젝트 최상위 폴더에 .env 파일을 생성하고 아래 내용을 입력하세요.</p>
-                      <p className="text-emerald-400">API_KEY=AIzaSy...</p>
+                      <p className="mb-2 text-slate-400"># 프로젝트 폴더의 .env.local 파일을 열어 아래와 같이 수정하세요.</p>
+                      <p className="text-emerald-400">GEMINI_API_KEY=AIzaSy...</p>
                   </div>
                   
                   <div className="text-sm text-slate-500 border-t border-slate-100 pt-4">
                       <p>1. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline font-bold">Google AI Studio</a>에서 키를 발급받으세요.</p>
-                      <p className="mt-1">2. <code>.env</code> 파일을 저장한 후 서버를 재시작해주세요.</p>
+                      <p className="mt-1">2. <code>.env.local</code> 파일의 <code>YOUR_ACTUAL_API_KEY_HERE</code>를 실제 키로 교체하세요.</p>
+                      <p className="mt-1">3. 파일을 저장한 후 개발 서버를 재시작해주세요.</p>
                   </div>
               </div>
           </div>
@@ -281,8 +282,8 @@ const App: React.FC = () => {
                   <div className="text-sm text-blue-800">
                     <p className="font-bold mb-1">API 키 변경 방법</p>
                     <ol className="list-decimal list-inside space-y-1 text-xs">
-                      <li>프로젝트 폴더의 <code className="bg-white px-1 rounded">.env</code> 파일을 수정하세요.</li>
-                      <li><code className="bg-white px-1 rounded">API_KEY=새로운키</code> 형식으로 입력하세요.</li>
+                      <li>프로젝트 폴더의 <code className="bg-white px-1 rounded">.env.local</code> 파일을 수정하세요.</li>
+                      <li><code className="bg-white px-1 rounded">GEMINI_API_KEY=새로운키</code> 형식으로 입력하세요.</li>
                       <li>개발 서버를 재시작하세요.</li>
                     </ol>
                   </div>
