@@ -5,19 +5,35 @@ import { MASTER_STYLE_PROMPT, SYSTEM_INSTRUCTION_STORY_ANALYSIS } from "../const
 let ai: GoogleGenAI | null = null;
 
 export const hasApiKey = (): boolean => {
-  return !!process.env.API_KEY;
+  const stored = localStorage.getItem('GEMINI_API_KEY');
+  return !!(stored || process.env.API_KEY);
 };
 
 export const getApiKey = (): string | undefined => {
-  return process.env.API_KEY;
+  return getStoredApiKey();
+};
+
+export const setApiKey = (key: string): void => {
+  // Store in localStorage for runtime use
+  localStorage.setItem('GEMINI_API_KEY', key);
+  // Also update process.env for immediate use
+  (process.env as any).API_KEY = key;
+  // Reset the AI client so it uses the new key
+  ai = null;
+};
+
+export const getStoredApiKey = (): string | undefined => {
+  const stored = localStorage.getItem('GEMINI_API_KEY');
+  return stored || process.env.API_KEY;
 };
 
 const getAi = (): GoogleGenAI => {
-  if (!process.env.API_KEY) {
-    throw new Error("API Key가 설정되지 않았습니다. .env 파일을 확인해주세요.");
+  const apiKey = getStoredApiKey();
+  if (!apiKey) {
+    throw new Error("API Key가 설정되지 않았습니다. 설정에서 API 키를 입력해주세요.");
   }
   if (!ai) {
-    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    ai = new GoogleGenAI({ apiKey });
   }
   return ai;
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { analyzeScript, generateImage, downloadImage, getPromptFix, hasApiKey, getApiKey } from './services/geminiService';
+import { analyzeScript, generateImage, downloadImage, getPromptFix, hasApiKey, getApiKey, setApiKey } from './services/geminiService';
 import { GeneratedImage, LoadingState } from './types';
 import { ASPECT_RATIOS } from './constants';
 import Button from './components/Button';
@@ -10,6 +10,8 @@ const App: React.FC = () => {
   const [aspectRatio, setAspectRatio] = useState<"16:9" | "1:1" | "9:16">("16:9");
   const [isApiKeyMissing, setIsApiKeyMissing] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState('');
+  const [isEditingApiKey, setIsEditingApiKey] = useState(false);
   
   // Loading State
   const [loadingState, setLoadingState] = useState<LoadingState>({ status: 'idle' });
@@ -219,9 +221,37 @@ const App: React.FC = () => {
                       <h2 className="text-xl font-bold text-slate-800">API Key 설정 필요</h2>
                   </div>
                   <p className="text-slate-600 mb-6 leading-relaxed">
-                      야담 메이커를 실행하려면 <strong>Google Gemini API Key</strong>가 필요합니다.<br/>
-                      보안을 위해 API Key는 코드에 직접 입력하지 않고 <strong>환경 변수</strong>로 설정해야 합니다.
+                      야담 메이커를 실행하려면 <strong>Google Gemini API Key</strong>가 필요합니다.
                   </p>
+                  
+                  <div className="mb-6">
+                    <label className="block text-sm font-bold text-slate-700 mb-2">
+                      API Key 입력
+                    </label>
+                    <input
+                      type="text"
+                      value={apiKeyInput}
+                      onChange={(e) => setApiKeyInput(e.target.value)}
+                      placeholder="AIzaSy..."
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm"
+                    />
+                    <Button 
+                      onClick={handleSaveApiKey}
+                      className="w-full mt-3"
+                      disabled={!apiKeyInput.trim()}
+                    >
+                      저장하고 시작하기
+                    </Button>
+                  </div>
+                  
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-slate-200"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-white text-slate-500">또는</span>
+                    </div>
+                  </div>
                   
                   <div className="bg-slate-800 rounded-lg p-4 mb-6 text-slate-200 text-sm font-mono overflow-x-auto">
                       <p className="mb-2 text-slate-400"># 프로젝트 폴더의 .env.local 파일을 열어 아래와 같이 수정하세요.</p>
@@ -245,6 +275,21 @@ const App: React.FC = () => {
     return key.slice(0, 4) + '*'.repeat(key.length - 8) + key.slice(-4);
   };
 
+  const handleSaveApiKey = () => {
+    if (apiKeyInput.trim()) {
+      setApiKey(apiKeyInput.trim());
+      setIsApiKeyMissing(false);
+      setIsEditingApiKey(false);
+      setApiKeyInput('');
+      alert('API 키가 저장되었습니다!');
+    }
+  };
+
+  const handleStartEditing = () => {
+    setIsEditingApiKey(true);
+    setApiKeyInput(getApiKey() || '');
+  };
+
   return (
     <>
       {/* Settings Modal */}
@@ -266,14 +311,53 @@ const App: React.FC = () => {
                 <label className="block text-sm font-bold text-slate-700 mb-2">
                   Google Gemini API Key
                 </label>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                  <p className="font-mono text-sm text-slate-600 break-all">
-                    {getApiKey() ? maskApiKey(getApiKey()!) : '설정되지 않음'}
-                  </p>
-                </div>
-                <p className="text-xs text-slate-500 mt-2">
-                  보안을 위해 일부만 표시됩니다.
-                </p>
+                {isEditingApiKey ? (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={apiKeyInput}
+                      onChange={(e) => setApiKeyInput(e.target.value)}
+                      placeholder="AIzaSy..."
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm"
+                    />
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={handleSaveApiKey}
+                        className="flex-1 !py-2 !text-sm"
+                        disabled={!apiKeyInput.trim()}
+                      >
+                        저장
+                      </Button>
+                      <Button 
+                        variant="secondary"
+                        onClick={() => {
+                          setIsEditingApiKey(false);
+                          setApiKeyInput('');
+                        }}
+                        className="flex-1 !py-2 !text-sm"
+                      >
+                        취소
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 flex items-center justify-between">
+                      <p className="font-mono text-sm text-slate-600 break-all">
+                        {getApiKey() ? maskApiKey(getApiKey()!) : '설정되지 않음'}
+                      </p>
+                      <button
+                        onClick={handleStartEditing}
+                        className="ml-2 text-indigo-600 hover:text-indigo-700 text-sm font-medium whitespace-nowrap"
+                      >
+                        수정
+                      </button>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2">
+                      보안을 위해 일부만 표시됩니다.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
