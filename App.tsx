@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { analyzeScript, generateImage, downloadImage, getPromptFix, hasApiKey } from './services/geminiService';
+import { analyzeScript, generateImage, downloadImage, getPromptFix, hasApiKey, getApiKey } from './services/geminiService';
 import { GeneratedImage, LoadingState } from './types';
 import { ASPECT_RATIOS } from './constants';
 import Button from './components/Button';
@@ -9,6 +9,7 @@ const App: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const [aspectRatio, setAspectRatio] = useState<"16:9" | "1:1" | "9:16">("16:9");
   const [isApiKeyMissing, setIsApiKeyMissing] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   
   // Loading State
   const [loadingState, setLoadingState] = useState<LoadingState>({ status: 'idle' });
@@ -238,16 +239,90 @@ const App: React.FC = () => {
 
   const isLoading = loadingState.status === 'analyzing' || loadingState.status === 'generating';
 
+  const maskApiKey = (key: string): string => {
+    if (key.length <= 8) return '***';
+    return key.slice(0, 4) + '*'.repeat(key.length - 8) + key.slice(-4);
+  };
+
   return (
+    <>
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-slate-800">설정</h2>
+              <button 
+                onClick={() => setShowSettings(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  Google Gemini API Key
+                </label>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                  <p className="font-mono text-sm text-slate-600 break-all">
+                    {getApiKey() ? maskApiKey(getApiKey()!) : '설정되지 않음'}
+                  </p>
+                </div>
+                <p className="text-xs text-slate-500 mt-2">
+                  보안을 위해 일부만 표시됩니다.
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-2">
+                  <svg className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  <div className="text-sm text-blue-800">
+                    <p className="font-bold mb-1">API 키 변경 방법</p>
+                    <ol className="list-decimal list-inside space-y-1 text-xs">
+                      <li>프로젝트 폴더의 <code className="bg-white px-1 rounded">.env</code> 파일을 수정하세요.</li>
+                      <li><code className="bg-white px-1 rounded">API_KEY=새로운키</code> 형식으로 입력하세요.</li>
+                      <li>개발 서버를 재시작하세요.</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-200">
+                <a 
+                  href="https://aistudio.google.com/app/apikey" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1 hover:underline"
+                >
+                  Google AI Studio에서 API 키 발급받기
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Left Panel */}
       <div className="w-full md:w-[400px] bg-white border-r border-slate-200 p-6 flex flex-col shrink-0 h-auto md:h-screen md:overflow-y-auto sticky top-0 z-10">
         <div className="mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="bg-indigo-600 text-white p-2 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
-            </span>
-            <h1 className="text-2xl font-black text-slate-800 tracking-tight">야담 <span className="font-light text-slate-500 text-lg">메이커</span></h1>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="bg-indigo-600 text-white p-2 rounded-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+              </span>
+              <h1 className="text-2xl font-black text-slate-800 tracking-tight">야담 <span className="font-light text-slate-500 text-lg">메이커</span></h1>
+            </div>
+            <button 
+              onClick={() => setShowSettings(true)}
+              className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors"
+              title="설정"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </button>
           </div>
           <p className="text-sm text-slate-500">대본만 넣으면 웹툰 한 편이 뚝딱.</p>
         </div>
@@ -508,6 +583,7 @@ const App: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

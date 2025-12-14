@@ -8,6 +8,10 @@ export const hasApiKey = (): boolean => {
   return !!process.env.API_KEY;
 };
 
+export const getApiKey = (): string | undefined => {
+  return process.env.API_KEY;
+};
+
 const getAi = (): GoogleGenAI => {
   if (!process.env.API_KEY) {
     throw new Error("API Key가 설정되지 않았습니다. .env 파일을 확인해주세요.");
